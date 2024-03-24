@@ -7,7 +7,7 @@ struct BinaryLifting {
     BinaryLifting(std::vector<std::vector<int>>& graph_, int root = 0) {
         graph = graph_;
         N = graph.size();
-        D = 31 - __builtin_clz(N);
+        D = 32 - __builtin_clz(N);
         C = 0;
         parent.resize(N, -1);
         hldId.resize(N, -1);

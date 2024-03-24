@@ -12,8 +12,7 @@ int main(int argc, char* argv[]) {
     cout << n << "\n";
     vector<pair<int, int>> edges;
     for (int i = 1; i < n; i++) {
-        int rnd = uniform_int_distribution<int>(0, i - 1)(seed);
-        pair<int, int> edge = make_pair(i, rnd);
+        pair<int, int> edge = make_pair(i, i - 1);
         if (uniform_int_distribution<int>(0, 1)(seed)) {
             swap(edge.first, edge.second);
         }
@@ -21,14 +20,17 @@ int main(int argc, char* argv[]) {
     }
     vector<int> perm(n);
     iota(perm.begin(), perm.end(), 0);
-    for (int i = n - 1; i >= 0; i--) {
-        int j = uniform_int_distribution<int>(0, i)(seed);
+    for (int i = n - 1; i > 0; i--) {
+        int j = uniform_int_distribution<int>(1, i)(seed);
         std::swap(perm[i], perm[j]);
     }
+    for (int i = 0; i < n - 1; i++) {
+        std::cout << perm[edges[i].first] << " " << perm[edges[i].second] << "\n";
+    }
+
     
     vector<vector<int>> graph(n);
     for (int i = 0; i < n - 1; i++) {
-        std::cout << perm[edges[i].first] << " " << perm[edges[i].second] << "\n";
         graph[perm[edges[i].first]].push_back(perm[edges[i].second]);
         graph[perm[edges[i].second]].push_back(perm[edges[i].first]);
     }
