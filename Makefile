@@ -1,23 +1,30 @@
 CC = g++
 CFLAGS = -std=c++20
-SRC_DIR = algos
 
-# List all source files
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+SRC_ALGO_DIR = algos
+SRC_TEST_DIR = testing
 
-# Generate corresponding executable names
-EXES = $(patsubst $(SRC_DIR)/%.cpp,%,$(SRCS))
+SRCS_ALGOS = $(wildcard $(SRC_ALGO_DIR)/*.cpp)
+
+EXES_ALGOS = $(patsubst $(SRC_ALGO_DIR)/%.cpp,%,$(SRCS_ALGOS))
+
+SRCS_TESTING = $(wildcard $(SRC_TEST_DIR)/*.cpp)
+
+EXES_TESTING = $(patsubst $(SRC_TEST_DIR)/%.cpp,%,$(SRCS_TESTING))
 
 # Default target
-all: $(EXES)
+all: $(EXES_ALGOS) $(EXES_TESTING)
 
 # Rule to build each executable
-$(EXES): % : $(SRC_DIR)/%.cpp
+$(EXES_ALGOS): % : algos/%.cpp
+	$(CC) $(CFLAGS) $< -o $@
+
+$(EXES_TESTING): % : $(SRC_TEST_DIR)/%.cpp
 	$(CC) $(CFLAGS) $< -o $@
 
 # Clean rule
 clean:
-	rm -rf $(EXES)
+	rm -rf $(EXES_ALGOS) $(EXES_TESTING)
 
 # Phony targets
 .PHONY: all clean
