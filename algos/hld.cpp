@@ -2,38 +2,46 @@
 #include <vector>
 #include <iostream>
 
+#include <sys/resource.h>
+
+#include "Timer.h"
+
 struct BinaryLifting {
 
     BinaryLifting(std::vector<std::vector<int>>& graph_, int root = 0) {
-        graph = graph_;
-        N = graph.size();
-        D = 32 - __builtin_clz(N);
-        C = 0;
-        parent.resize(N, -1);
-        hldId.resize(N, -1);
-        size.resize(N);
-        heavyChild.resize(N, -1);
-        hldOrder.resize(N, -1);
-        dfs1(root);
-        dfs2(root);
-        table.resize(D, std::vector<int>(N));
-        auto start = std::chrono::high_resolution_clock::now();
-        for (int n = 0; n < N; n++) {
-            table[0][n] = parent[hldOrder[n]];
+        { // Initialization
+            Timer timer("Init");
+            graph = graph_;
+            N = graph.size();
+            D = 32 - __builtin_clz(N);
+            C = 0;
+            parent.resize(N, -1);
+            hldId.resize(N, -1);
+            size.resize(N);
+            heavyChild.resize(N, -1);
+            hldOrder.resize(N, -1);
+            table.resize(D * N, -1);
         }
-        for (int d = 1; d < D; d++) {
+
+        { // DFS
+            Timer timer("DFSes");
+            dfs1(root);
+            dfs2(root);
+        }
+
+        { // Table Building
+            Timer timer("Table Building");
             for (int n = 0; n < N; n++) {
-                if (table[d - 1][n] == -1) {
-                    table[d][n] = -1;
-                }
-                else {
-                    table[d][n] = table[d - 1][table[d - 1][n]];
-                }
+                table[n] = hldId[parent[hldOrder[n]]];
             }
+            for (int d = 1; d < D; d++) {
+                for (int n = 0; n < N; n++) {
+                    if (table[(d - 1) * N + n] != -1) {
+                        table[d * N + n] = table[(d - 1) * N + table[(d - 1) * N + n]];
+                    }
+                }
+            } 
         }
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        std::cout << "Table Building Elapsed Time: " << elapsed.count() << " ms" << std::endl;             
     }
 
 
@@ -67,13 +75,13 @@ struct BinaryLifting {
 
 
     int query(int n, int k) {
-        int ancestor = n;
-        for (int d = 0; d < D; d++) {
-            if (k >> d & 1) {
-                ancestor = table[d][ancestor];
-            }
+        int ancestor = hldId[n];
+        while (k != 0) {
+            int d = 31 - __builtin_clz(k);
+            ancestor = table[d * N + ancestor];
+            k ^= (1 << d);
         }
-        return ancestor;
+        return hldOrder[ancestor];
     }
 
 
@@ -86,7 +94,7 @@ struct BinaryLifting {
     std::vector<int> heavyChild;
     std::vector<int> size;
     std::vector<std::vector<int>> graph;
-    std::vector<std::vector<int>> table;
+    std::vector<int> table;
 };
 
 int main(int argc, char* argv[]) {
@@ -101,13 +109,23 @@ int main(int argc, char* argv[]) {
         graph[a].push_back(b);
         graph[b].push_back(a);
     }
+    int Q;
+    std::cin >> Q;
+    std::vector<int> nodeQuery(Q);
+    std::vector<int> kQuery(Q);
+    for (int i = 0; i < Q; i++) {
+        std::cin >> nodeQuery[i] >> kQuery[i];
+    }
     std::cout << "done reading input" << std::endl;
 
-    auto start = std::chrono::high_resolution_clock::now();
-    
+    Timer timer("Total Algo");
+    Timer preProcTimer("PreProcessing");
     BinaryLifting algo = BinaryLifting(graph);
+    preProcTimer.stop();
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Elapsed time: " << elapsed.count() << " ms" << std::endl;    
+    Timer queryTimer("Query");
+    for (int i = 0; i < Q; i++) {
+        algo.query(nodeQuery[i], kQuery[i]);
+    }
+    queryTimer.stop();
 }

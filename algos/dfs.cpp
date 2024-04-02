@@ -2,32 +2,40 @@
 #include <vector>
 #include <iostream>
 
+#include "Timer.h"
+
 struct BinaryLifting {
 
     BinaryLifting(std::vector<std::vector<int>>& graph_, int root = 0) {
-        graph = graph_;
-        N = graph.size();
-        D = 31 - __builtin_clz(N);
-        C = 0;
-        parent.resize(N, -1);
-        table.resize(D * N, -1);
-        dfsOrder.resize(N);
-        dfs(root);
-
-        for (int n = 0; n < N; n++) {
-            table[n] = parent[dfsOrder[n]];
+        { // Initialization
+            Timer timer("Init");
+            graph = graph_;
+            N = graph.size();
+            D = 31 - __builtin_clz(N);
+            C = 0;
+            parent.resize(N, -1);
+            table.resize(D * N, -1);
+            dfsOrder.resize(N);
         }
-        auto start = std::chrono::high_resolution_clock::now();
-        for (int d = 1; d < D; d++) {
+
+        { // DFS
+            Timer timer("DFS");
+            dfs(root);
+        }
+
+        { // Building Table
+            Timer timer("Building Table");
             for (int n = 0; n < N; n++) {
-                if (table[(d - 1) * N + n] != -1) {
-                    table[d * N + n] = table[(d - 1) * N + table[(d - 1) * N + n]];
+                table[n] = parent[dfsOrder[n]];
+            }
+            for (int d = 1; d < D; d++) {
+                for (int n = 0; n < N; n++) {
+                    if (table[(d - 1) * N + n] != -1) {
+                        table[d * N + n] = table[(d - 1) * N + table[(d - 1) * N + n]];
+                    }
                 }
             }
         }
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        std::cout << "Table Building Elapsed Time: " << elapsed.count() << " ms" << std::endl;        
     }
 
 
@@ -75,13 +83,23 @@ int main(int argc, char* argv[]) {
         graph[a].push_back(b);
         graph[b].push_back(a);
     }
+    int Q;
+    std::cin >> Q;
+    std::vector<int> nodeQuery(Q);
+    std::vector<int> kQuery(Q);
+    for (int i = 0; i < Q; i++) {
+        std::cin >> nodeQuery[i] >> kQuery[i];
+    }
     std::cout << "done reading input" << std::endl;
 
-    auto start = std::chrono::high_resolution_clock::now();
-    
+    Timer timer("Total Algo");
+    Timer preProcTimer("PreProcessing");
     BinaryLifting algo = BinaryLifting(graph);
+    preProcTimer.stop();
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
-    std::cout << "Elapsed time: " << elapsed.count() << " ms" << std::endl;    
+    Timer queryTimer("Query");
+    for (int i = 0; i < Q; i++) {
+        algo.query(nodeQuery[i], kQuery[i]);
+    }
+    queryTimer.stop();
 }

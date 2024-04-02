@@ -14,9 +14,7 @@ struct BinaryLifting {
             D = 32 - __builtin_clz(N);
             C = 0;
             parent.resize(N, -1);
-            Timer tableAllocTimer("Table Allocation");
             table.resize(D * N, -1);
-            tableAllocTimer.stop();
             dfsOrder.resize(N);
             dfsId.resize(N);
             stk.resize(N);
