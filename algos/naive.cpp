@@ -13,6 +13,7 @@ struct BinaryLifting {
             N = graph.size();
             D = 32 - __builtin_clz(N);
             parent.resize(N, -1);
+            stk.resize(N);
             table.resize(D, std::vector<int>(N));
         }       
 
@@ -41,10 +42,17 @@ struct BinaryLifting {
 
 
     void dfs(int n) {
-        for (int e : graph[n]) {
-            if (e != parent[n]) {
-                parent[e] = n;
-                dfs(e);
+        stk[0] = n;
+        stkPtr = 0;
+        while (stkPtr >= 0) {
+            int n = stk[stkPtr];
+            stkPtr--;
+            for (int e : graph[n]) {
+                if (e != parent[n]) {
+                    parent[e] = n;
+                    stkPtr++;
+                    stk[stkPtr] = e;
+                }
             }
         }
     }
@@ -63,6 +71,8 @@ struct BinaryLifting {
 
     int D;
     int N;
+    int stkPtr;
+    std::vector<int> stk;
     std::vector<int> parent;
     std::vector<std::vector<int>> graph;
     std::vector<std::vector<int>> table;

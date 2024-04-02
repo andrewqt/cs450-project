@@ -21,6 +21,9 @@ struct BinaryLifting {
             heavyChild.resize(N, -1);
             hldOrder.resize(N, -1);
             table.resize(D * N, -1);
+            stk.resize(N);
+            dfsPtr.resize(N);
+            doneHeavyChild.resize(N);
         }
 
         { // DFS
@@ -45,30 +48,70 @@ struct BinaryLifting {
     }
 
 
-    void dfs1(int n) {
-        size[n] = 1;
-        for (int e : graph[n]) {
-            if (e != parent[n]) {
-                parent[e] = n;
-                dfs1(e);
-                size[n] += size[e];
-                if (heavyChild[n] == -1 || size[e] > size[heavyChild[n]]) {
-                    heavyChild[n] = e;
+    void dfs1(int root) {
+        stk[0] = root;
+        stkPtr = 0;
+        size[root] = 1;
+        while (stkPtr >= 0) {
+            int n = stk[stkPtr];
+            bool toPop = true;
+            while (dfsPtr[n] < graph[n].size()) {
+                int i = dfsPtr[n];
+                dfsPtr[n]++;
+                if (graph[n][i] != parent[n]) {
+                    int e = graph[n][i];
+                    parent[e] = n;
+                    stkPtr++;
+                    stk[stkPtr] = e;
+                    toPop = false;
+                    break;
+                }
+            }
+            if (toPop) {
+                stkPtr--;
+                if (stkPtr < 0) {
+                    continue;
+                }
+                int p = parent[n];
+                size[p] = size[p] + 1;
+                if (heavyChild[p] == -1 || size[n] > size[heavyChild[p]]) {
+                    heavyChild[p] = n;
                 }
             }
         }
     }
 
     
-    void dfs2(int n) {
-        hldOrder[C] = n;
-        hldId[n] = ++C;
-        if (heavyChild[n] != -1) {
-            dfs2(heavyChild[n]);
-        }
-        for (int e : graph[n]) {
-            if (e != parent[n] && e != heavyChild[n]) {
-                dfs2(e);
+    void dfs2(int root) {
+        fill(dfsPtr.begin(), dfsPtr.end(), 0);
+        stk[0] = root;
+        stkPtr = 0;
+        hldOrder[C++] = root;
+        hldId[root] = 0;
+        while (stkPtr >= 0) {
+            int n = stk[stkPtr];
+            bool toPop = true;
+            if (!doneHeavyChild[n] && heavyChild[n] != -1) {
+                stk[++stkPtr] = heavyChild[n];
+                hldId[heavyChild[n]] = C;
+                hldOrder[C++] = heavyChild[n];
+                doneHeavyChild[n] = true;
+                continue;
+            }
+            while (dfsPtr[n] < graph[n].size()) {
+                int i = dfsPtr[n];
+                dfsPtr[n]++;
+                if (graph[n][i] != parent[n] && graph[n][i] != heavyChild[n]) {
+                    int e = graph[n][i];
+                    hldId[e] = C;
+                    hldOrder[C++] = e;                    
+                    stkPtr++;
+                    stk[stkPtr] = e;
+                    break;
+                }
+            }
+            if (toPop) {
+                stkPtr--;
             }
         }
     }
@@ -88,10 +131,14 @@ struct BinaryLifting {
     int D;
     int N;
     int C;
+    int stkPtr;
+    std::vector<int> dfsPtr;
+    std::vector<int> stk;
     std::vector<int> parent;
     std::vector<int> hldId;
     std::vector<int> hldOrder;
     std::vector<int> heavyChild;
+    std::vector<int> doneHeavyChild;
     std::vector<int> size;
     std::vector<std::vector<int>> graph;
     std::vector<int> table;
@@ -116,14 +163,14 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < Q; i++) {
         std::cin >> nodeQuery[i] >> kQuery[i];
     }
-    std::cout << "done reading input" << std::endl;
+    std::cout << "done reading input" << std::endl; 
 
     Timer timer("Total Algo");
     Timer preProcTimer("PreProcessing");
     BinaryLifting algo = BinaryLifting(graph);
     preProcTimer.stop();
 
-    Timer queryTimer("Query");
+    Timer queryTimer("Query"); 
     for (int i = 0; i < Q; i++) {
         algo.query(nodeQuery[i], kQuery[i]);
     }
