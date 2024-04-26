@@ -2,18 +2,17 @@
 
 commands=(
     "bfs"
-    "dfs"
     "hld"
     "naive"
     "stack_dfs"
 )
 
 tests=(
-    "line_tree"
     "random_tree"
+    "line_tree"
 )
 
-output="out.txt"
+output="out2.txt"
 echo "test,nodes,queries,algo,init time,search time,table build time,preprocess time,query time,total time" > $output
 
 for test in "${tests[@]}"; do
@@ -35,6 +34,6 @@ for test in "${tests[@]}"; do
                 eval "./$cmd < $data | tail -n +2 | cut -d \":\" -f2 | cut -d ' ' -f2 | awk '{printf \"%s%s\",sep,\$0; sep=\",\"} END{print \"\"}' >> $output"
             done
         done
-        (( nodes *= 10))
+        (( nodes = 2 * nodes))
     done
 done

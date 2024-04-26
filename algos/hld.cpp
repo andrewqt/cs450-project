@@ -2,8 +2,6 @@
 #include <vector>
 #include <iostream>
 
-#include <sys/resource.h>
-
 #include "Timer.h"
 
 struct BinaryLifting {
@@ -35,13 +33,14 @@ struct BinaryLifting {
         { // Table Building
             Timer timer("Table Building");
             for (int n = 0; n < N; n++) {
-                table[n] = hldId[parent[hldOrder[n]]];
+                table[n] = (parent[hldOrder[n]] == -1 ? -1 : hldId[parent[hldOrder[n]]]);
             }
             for (int d = 1; d < D; d++) {
                 for (int n = 0; n < N; n++) {
                     if (table[(d - 1) * N + n] != -1) {
                         table[d * N + n] = table[(d - 1) * N + table[(d - 1) * N + n]];
                     }
+              
                 }
             } 
         }
@@ -64,6 +63,7 @@ struct BinaryLifting {
                     stkPtr++;
                     stk[stkPtr] = e;
                     toPop = false;
+                    size[e] = 1;
                     break;
                 }
             }
@@ -73,7 +73,7 @@ struct BinaryLifting {
                     continue;
                 }
                 int p = parent[n];
-                size[p] = size[p] + 1;
+                size[p] += size[n];
                 if (heavyChild[p] == -1 || size[n] > size[heavyChild[p]]) {
                     heavyChild[p] = n;
                 }
@@ -104,9 +104,10 @@ struct BinaryLifting {
                 if (graph[n][i] != parent[n] && graph[n][i] != heavyChild[n]) {
                     int e = graph[n][i];
                     hldId[e] = C;
-                    hldOrder[C++] = e;                    
+                    hldOrder[C++] = e;
                     stkPtr++;
                     stk[stkPtr] = e;
+                    toPop = false;
                     break;
                 }
             }

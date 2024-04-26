@@ -6,6 +6,32 @@
 
 struct BinaryLifting {
 
+    // BinaryLifting(std::vector<std::vector<int>>& graph_, int root = 0) {
+    //     graph = graph_;
+    //     N = graph.size();
+    //     D = 32 - __builtin_clz(N);
+    //     parent.resize(N, -1);
+    //     stk.resize(N);
+    //     table.resize(D, std::vector<int>(N));
+
+    //     dfs(root);
+
+    //     for (int n = 0; n < N; n++) {
+    //         table[0][n] = parent[n];
+    //     }
+    //     for (int d = 1; d < D; d++) {
+    //         for (int n = 0; n < N; n++) {
+    //             if (table[d - 1][n] == -1) {
+    //                 table[d][n] = -1;
+    //             }
+    //             else {
+    //                 table[d][n] = table[d - 1][table[d - 1][n]];
+    //             }
+    //         }
+    //     }
+    // }
+
+
     BinaryLifting(std::vector<std::vector<int>>& graph_, int root = 0) {
         { // Initialization
             Timer timer("Init");
